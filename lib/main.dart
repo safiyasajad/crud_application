@@ -216,10 +216,10 @@ class _ContactsHomePageState extends State<ContactsHomePage> {
       },
     );
 
-    // Controllers use memory, so  should be disposed when no longer needed. to prevent memory leaks after the dialog is closed.
-    nameController.dispose();
-    emailController.dispose();
-    phoneController.dispose();
+    // // Controllers use memory, so  should be disposed when no longer needed. to prevent memory leaks after the dialog is closed.
+    // nameController.dispose();
+    // emailController.dispose();
+    // phoneController.dispose();
 
     // If the dialog = true, a contact added/updated. reloads to show latest db
     if (saved == true) {
