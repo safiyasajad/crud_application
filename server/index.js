@@ -1,79 +1,109 @@
 const express = require('express');
-const app = express();
 const cors = require('cors');
 const pool = require('./db');
+const app = express();
 
-//middlewares
+// Allows Flutter/web clients to call this API.
 app.use(cors());
+
+// Allows Express to read JSON request bodies.
 app.use(express.json());
 
-//ROUTES//
+// CREATE - add a new contact to PostgreSQL.
+app.post("/contacts", async (req, res) => {
+  try {
+    const { name, email, phone_number } = req.body;
 
-//create a todo 
-app.post("/todos", async (req, res) => {
-    try{
-        const {description} = req.body;
-        const newTodo = await pool.query(
-            " INSERT INTO todo (description) VALUES($1) RETURNING *",
-            [description]
-        );
-        res.json(newTodo.rows[0]);
+    const newContact = await pool.query(
+      "INSERT INTO contacts (name, email, phone_number) VALUES ($1, $2, $3) RETURNING *",
+      [name, email, phone_number]
+    );
 
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ error: err.message });
-    }
-});
-//get all todos
-app.get("/todos", async (req, res) => {
-    try{
-        const allTodos = await pool.query("SELECT * FROM todo");
-        res.json(allTodos.rows);
-    } catch (err) {
-        console.error(err.message);
-    }
+    res.status(201).json(newContact.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+  }
 });
 
-//get a todo
-app.get("/todos/:id", async (req, res) => {
-    try{
-        const {id} = req.params;
-        const todo = await pool.query("SELECT * FROM todo WHERE todo_id = $1", [id]);
-        res.json(todo.rows[0]);
-    } catch (err) {
-        console.error(err.message);
-    }
-});
-//update a todo
+// READ - get all contacts from PostgreSQL.
+app.get("/contacts", async (req, res) => {
+  try {
+    const allContacts = await pool.query(
+      "SELECT * FROM contacts"
+    );
 
-app.put("/todos/:id", async (req, res) => {
-    try{
-        const {id} = req.params;
-        const {description} = req.body;
-        const updateTodo = await pool.query(
-            "UPDATE todo SET description = $1 WHERE todo_id = $2",  
-            [description, id]
-        );
-        res.json("Todo was updated successfully");
-    } catch (err) {
-        console.error(err.message);
-    }
+    res.json(allContacts.rows);
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
-//delete a todo
-app.delete("/todos/:id", async (req, res) => {
-    try{
-        const {id} = req.params;
-        const deleteTodo = await pool.query("DELETE FROM todo WHERE todo_id = $1", [id]);
-        res.json("Todo was deleted successfully");
-    } catch (err) {
-        console.error(err.message);
+// READ - get one contact by id.
+app.get("/contacts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const contact = await pool.query(
+      "SELECT * FROM contacts WHERE contact_id = $1",
+      [id]
+    );
+
+    if (contact.rows.length === 0) {
+      return res.status(404).json({ error: "Contact not found" });
     }
+
+    res.json(contact.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
-//starting server 
+// UPDATE 
+app.put("/contacts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, phone_number } = req.body;
+
+    const updatedContact = await pool.query(
+      "UPDATE contacts SET name = $1, email = $2, phone_number = $3 WHERE contact_id = $4 RETURNING *",
+      [name, email, phone_number, id]
+    );
+
+    if (updatedContact.rows.length === 0) {
+      return res.status(404).json({ error: "Contact not found" });
+    }
+
+    res.json(updatedContact.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE - remove a contact from PostgreSQL.
+app.delete("/contacts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedContact = await pool.query(
+      "DELETE FROM contacts WHERE contact_id = $1 RETURNING *",
+      [id]
+    );
+
+    if (deletedContact.rows.length === 0) {
+      return res.status(404).json({ error: "Contact not found" });
+    }
+
+    res.json({ message: "Contact was deleted successfully" });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(5000, () => {
-  console.log(`Server is running on port 5000`);
+  console.log("Server is running on port 5000");
 });
-
-
