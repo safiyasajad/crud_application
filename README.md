@@ -22,7 +22,7 @@ PUT
 
 DELETE
 
-<img width="700" height="323" alt="image" src="https://github.com/user-attachments/assets/ac1a5e0c-d889-432f-a0e4-a977e8dfa0e8" />
+<img width="800" height="323" alt="image" src="https://github.com/user-attachments/assets/ac1a5e0c-d889-432f-a0e4-a977e8dfa0e8" />
 
 ID 1 HAS BEEN DELETED
 
